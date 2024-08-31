@@ -102,4 +102,9 @@ public class CameraManager : MonoBehaviour
 
         OnCameraSwitch?.Invoke(mainCamera);
     }
+
+    public void SetTarget(Transform target)
+    {
+        this.target = target;
+    }
 }

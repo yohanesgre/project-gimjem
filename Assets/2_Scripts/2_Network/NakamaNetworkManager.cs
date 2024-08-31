@@ -187,8 +187,6 @@ namespace GimJem.Network
                 IsHost = false;
                 RoomKey = roomKey;
                 Debug.Log($"Joined room with key: {RoomKey}");
-
-
             }
             catch (System.Exception e)
             {
