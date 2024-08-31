@@ -30,6 +30,7 @@ public class ObjectPlacer : MonoBehaviour
 
     public List<Vector2> PlacedObjectPositions { get; private set; }
 
+    public float offsetY = 0f; // Add this line
 
     private void TryPlaceObject(int x, int y)
     {
@@ -128,8 +129,7 @@ public class ObjectPlacer : MonoBehaviour
                 {
                     if (placedObjects[x, y] != null)
                     {
-                        Vector3 position = new Vector3(x * CELL_SIZE, 0, y * CELL_SIZE) + mapOffset + cellOffset;
-                        // Gizmos.DrawCube(position, new Vector3(CELL_SIZE, 0.1f, CELL_SIZE));
+                        Vector3 position = new Vector3(x * CELL_SIZE, offsetY, y * CELL_SIZE) + mapOffset + cellOffset;
                         Instantiate(placedObjects[x, y].prefab, position, Quaternion.identity, groupHolder);
                     }
                 }
@@ -197,7 +197,7 @@ public class ObjectPlacer : MonoBehaviour
                 {
                     if (placedObjects[x, y] != null)
                     {
-                        Vector3 position = new Vector3(x * CELL_SIZE, 0, y * CELL_SIZE) + mapOffset + cellOffset;
+                        Vector3 position = new Vector3(x * CELL_SIZE, offsetY, y * CELL_SIZE) + mapOffset + cellOffset;
                         Gizmos.DrawCube(position, new Vector3(CELL_SIZE, 0.1f, CELL_SIZE));
                     }
                 }
@@ -206,7 +206,7 @@ public class ObjectPlacer : MonoBehaviour
             // Draw placed object positions
             foreach (var pos in placedObjectPositions)
             {
-                Vector3 position = new Vector3(pos.x * CELL_SIZE, 0, pos.y * CELL_SIZE) + mapOffset + cellOffset;
+                Vector3 position = new Vector3(pos.x * CELL_SIZE, offsetY, pos.y * CELL_SIZE) + mapOffset + cellOffset;
                 Gizmos.DrawWireCube(position, new Vector3(CELL_SIZE * placedObjects[pos.x, pos.y].cellSize.x, 0.1f, CELL_SIZE * placedObjects[pos.x, pos.y].cellSize.y));
             }
         }
