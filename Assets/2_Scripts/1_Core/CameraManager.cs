@@ -1,7 +1,9 @@
+using System;
 using UnityEngine;
 
 public class CameraManager : MonoBehaviour
 {
+    public event Action<Camera> OnCameraSwitch;
     public Camera mainCamera;
     public Camera[] isometricCameras;
     public Transform target; // The character to follow
@@ -37,6 +39,8 @@ public class CameraManager : MonoBehaviour
         {
             mainCamera = Camera.main;
         }
+
+        OnCameraSwitch?.Invoke(mainCamera);
 
         mainCameraInitialPosition = mainCamera.transform.position;
     }
@@ -95,5 +99,7 @@ public class CameraManager : MonoBehaviour
 
         // Update the main camera's initial position
         mainCameraInitialPosition = mainCamera.transform.position;
+
+        OnCameraSwitch?.Invoke(mainCamera);
     }
 }
