@@ -20,15 +20,17 @@ namespace GimJem.Network
 
     public class NakamaNetworkManager : MonoBehaviour
     {
-        public event System.Action<string> OnPlayerJoined;
-        public event System.Action<string> OnPlayerLeft;
+        public event System.Action<string, bool> OnPlayerJoined;
+        public event System.Action<string, bool> OnPlayerLeft;
         public event System.Action<string, bool> OnPlayerReady;
+        public event System.Action OnRoomCreated;
         public event System.Action OnGameStarted;
         public event System.Action OnAllPlayersLoaded;
         public event System.Action<ConnectionStatus> OnConnectionStateUpdated;
 
         private int playersLoadedCount = 0;
         private int totalPlayers = 0;
+        private const int MAX_PLAYERS = 1;
 
         [Header("Nakama Server Settings")]
         [SerializeField] private string SCHEME = "http"; // Replace with your Nakama server address scheme
@@ -52,6 +54,8 @@ namespace GimJem.Network
         private IMatch currentMatch;
 
         public static NakamaNetworkManager Instance { get; private set; }
+
+        public bool IsRoomFull => totalPlayers == MAX_PLAYERS;
 
         #region Unity Lifecycle Related
         private void Awake()
@@ -90,7 +94,8 @@ namespace GimJem.Network
                 {
                     Timeout = 5
                 };
-
+                RegisterMatchPresencesListeners();
+                RegisterMatchStateListeners();
             }
             catch (System.Exception e)
             {
@@ -157,7 +162,7 @@ namespace GimJem.Network
         /// Creates a new room on the Nakama server.
         /// </summary>
         /// <returns>The room key created.</returns>
-        public async Task<string> CreateRoom()
+        public async Task CreateRoom()
         {
             var match = await socket.CreateMatchAsync();
             currentMatch = match;
@@ -165,9 +170,7 @@ namespace GimJem.Network
             RoomKey = match.Id;
             Debug.Log($"Created room with key: {RoomKey}");
 
-            RegisterMatchListeners();
-
-            return RoomKey;
+            OnRoomCreated?.Invoke();
         }
 
         /// <summary>
@@ -185,7 +188,7 @@ namespace GimJem.Network
                 RoomKey = roomKey;
                 Debug.Log($"Joined room with key: {RoomKey}");
 
-                RegisterMatchListeners();
+
             }
             catch (System.Exception e)
             {
@@ -194,27 +197,60 @@ namespace GimJem.Network
         }
 
         /// <summary>
+        /// Attempts to join a room with the given room key.
+        /// If the room is full and the player is not the host, they will automatically leave the room.
+        /// </summary>
+        /// <param name="roomKey">The key of the room to join.</param>
+        public async Task TryJoinRoom(string roomKey)
+        {
+            // Join the room
+            await JoinRoom(roomKey);
+
+            // If the room is full and the player is not the host, leave the room
+            if (!IsHost && IsRoomFull)
+            {
+                await LeaveRoom();
+            }
+        }
+
+        /// <summary>
+        /// Leaves the current room on the Nakama server.
+        /// </summary>
+        public async Task LeaveRoom()
+        {
+            await socket.LeaveMatchAsync(currentMatch.Id);
+            currentMatch = null;
+            IsHost = false;
+            RoomKey = null;
+            Debug.Log("Left room");
+        }
+
+        /// <summary>
         /// Registers listeners for match presence events (i.e. players joining or leaving).
         /// </summary>
-        private void RegisterMatchListeners()
+        private void RegisterMatchPresencesListeners()
         {
             socket.ReceivedMatchPresence += match =>
             {
-                foreach (var presence in match.Joins)
+                // Queue the processing on the main thread
+                UnityMainThreadDispatcher.Instance().Enqueue(() =>
                 {
-                    OnPlayerJoined?.Invoke(presence.UserId);
-                }
-                foreach (var presence in match.Leaves)
-                {
-                    OnPlayerLeft?.Invoke(presence.UserId);
-                }
+                    foreach (var presence in match.Joins)
+                    {
+                        OnPlayerJoined?.Invoke(presence.UserId, presence.UserId == PlayerId);
+                    }
+                    foreach (var presence in match.Leaves)
+                    {
+                        OnPlayerLeft?.Invoke(presence.UserId, presence.UserId == PlayerId);
+                    }
+                });
             };
         }
 
         /// <summary>
         /// Registers listeners for match state events, specifically for handling player ready states and game start events.
         /// </summary>
-        public void RegisterLobbyHandlers()
+        public void RegisterMatchStateListeners()
         {
             socket.ReceivedMatchState += matchState =>
             {
@@ -272,6 +308,13 @@ namespace GimJem.Network
             string stateJson = JsonWriter.ToJson(startGameState);
             var opCode = NetworkConstants.LOBBY_GAME_START_OP_CODE; // Use opcode 4 for game start
             socket.SendMatchStateAsync(currentMatch.Id, opCode, stateJson);
+        }
+
+        public void TryStartGame()
+        {
+            if (totalPlayers > MAX_PLAYERS && totalPlayers < 1) return;
+
+            StartGame();
         }
         #endregion
 

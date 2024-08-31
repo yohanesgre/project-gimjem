@@ -14,9 +14,19 @@ namespace GimJem.UI.MainMenu
         [SerializeField] private Button cancelButton;
         [SerializeField] private TMP_InputField roomKeyInputField;
 
+
         public void Init(MainMenuManager manager)
         {
             this.manager = manager;
+            manager.OnPlayerJoined += OnPlayerJoined;
+        }
+
+        private void OnDestroy()
+        {
+            if (manager != null)
+            {
+                manager.OnPlayerJoined -= OnPlayerJoined;
+            }
         }
 
         private void Awake()
@@ -38,7 +48,7 @@ namespace GimJem.UI.MainMenu
 
         private void OnClickJoinRoomButton()
         {
-            // manager.JoinRoom(roomKeyInputField.text);
+            manager.JoinRoom(roomKeyInputField.text);
         }
 
         private void OnClickCancelButton()
@@ -46,14 +56,20 @@ namespace GimJem.UI.MainMenu
             Hide();
         }
 
-        public void Show()
-        {
-            gameObject.SetActive(true);
-        }
-
         public void Hide()
         {
-            gameObject.SetActive(false);
+            GetComponent<Canvas>().enabled = false;
+        }
+
+        public void Show()
+        {
+            GetComponent<Canvas>().enabled = true;
+        }
+
+
+        private void OnPlayerJoined(string playerId, bool isSelf, bool isHost, int minPlayerCount)
+        {
+            // Hide();
         }
     }
 }

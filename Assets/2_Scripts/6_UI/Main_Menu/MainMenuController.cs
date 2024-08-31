@@ -1,7 +1,6 @@
-using EasyUI.Toast;
+using System.ComponentModel;
 using GimJem.Core;
 using GimJem.Network;
-using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -14,11 +13,13 @@ namespace GimJem.UI.MainMenu
         [SerializeField] private Button joinRoomButton;
         [SerializeField] private Button connectButton;
 
+
         public void Init(MainMenuManager manager)
         {
+
             this.manager = manager;
             manager.OnConnectionStateUpdated += OnConnectionStateUpdated;
-            manager.OnCreateRoom += OnCreateRoom;
+
         }
 
         private void Awake()
@@ -32,7 +33,7 @@ namespace GimJem.UI.MainMenu
         private void OnDestroy()
         {
             manager.OnConnectionStateUpdated -= OnConnectionStateUpdated;
-            manager.OnCreateRoom -= OnCreateRoom;
+
         }
 
         private void OnEnable()
@@ -67,14 +68,9 @@ namespace GimJem.UI.MainMenu
             }
         }
 
-        private void OnCreateRoom()
-        {
-            Debug.Log("Create Room");
-        }
 
         private async void OnClickCreateRoomButton()
         {
-            Toast.Show("Create Room");
             await manager.CreateRoomAsync();
         }
 
@@ -89,14 +85,14 @@ namespace GimJem.UI.MainMenu
             Debug.Log("Connect");
         }
 
-        public void Show()
-        {
-            gameObject.SetActive(true);
-        }
-
         public void Hide()
         {
-            gameObject.SetActive(false);
+            GetComponent<Canvas>().enabled = false;
+        }
+
+        public void Show()
+        {
+            GetComponent<Canvas>().enabled = true;
         }
 
         private void SetInteractableCreateRoomButton(bool enabled)

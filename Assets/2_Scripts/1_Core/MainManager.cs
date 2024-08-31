@@ -16,7 +16,7 @@ namespace GimJem.Core
             {
                 Instance = this;
                 DontDestroyOnLoad(gameObject);
-                InitializeManagers();
+
             }
             else
             {
@@ -26,6 +26,7 @@ namespace GimJem.Core
 
         private async void Start()
         {
+            InitializeManagers();
             await TryConnectToServerAsync();
         }
 
@@ -44,5 +45,6 @@ namespace GimJem.Core
             var deviceId = NakamaNetworkManager.Instance.GetDeviceId();
             await NakamaNetworkManager.Instance.Connect(deviceId);
         }
+
     }
 }
