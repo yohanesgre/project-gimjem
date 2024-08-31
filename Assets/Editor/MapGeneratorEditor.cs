@@ -32,10 +32,5 @@ public class MapGeneratorEditor : Editor
         {
             mapGen.ClearTilemaps();
         }
-
-        if (GUILayout.Button("Update Grid Gizmos"))
-        {
-            mapGen.UpdateGridGizmos();
-        }
     }
 }

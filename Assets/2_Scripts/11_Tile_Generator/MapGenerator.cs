@@ -72,11 +72,6 @@ public class MapGenerator : MonoBehaviour
         }
     }
 
-    public void UpdateGridGizmos()
-    {
-        GetComponent<DecorationPlacer>().UpdateValue(mapWidth, mapHeight, 2);
-    }
-
     void OnValidate()
     {
         if (mapWidth < 1)

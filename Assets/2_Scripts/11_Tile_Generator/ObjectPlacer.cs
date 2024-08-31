@@ -14,6 +14,7 @@ public class ObjectPlacer : MonoBehaviour
     }
 
     public MapGenerator mapGenerator;
+    public Transform groupHolder;
     public PlaceableObject[] objects;
     [Range(0f, 1f)] public float rigidness = 0.2f; // Replace spreadFactor with rigidness
     // Remove pathWidth
@@ -29,27 +30,6 @@ public class ObjectPlacer : MonoBehaviour
 
     public List<Vector2> PlacedObjectPositions { get; private set; }
 
-    public void PlaceObjects()
-    {
-        random = new System.Random(seed);
-        placedObjects = new PlaceableObject[mapGenerator.mapWidth, mapGenerator.mapHeight];
-        placedObjectPositions.Clear();
-        objectsPlaced = 0;
-
-        while (objectsPlaced < maxObjects)
-        {
-            int x = random.Next(gridPadding, mapGenerator.mapWidth - gridPadding);
-            int y = random.Next(gridPadding, mapGenerator.mapHeight - gridPadding);
-
-            if (placedObjects[x, y] == null)
-            {
-                TryPlaceObject(x, y);
-            }
-
-            if (objectsPlaced >= minObjects && random.NextDouble() < 0.1f)
-                break;
-        }
-    }
 
     private void TryPlaceObject(int x, int y)
     {
@@ -103,6 +83,65 @@ public class ObjectPlacer : MonoBehaviour
             }
         }
         placedObjectPositions.Add(new Vector2Int(x, y));
+    }
+
+
+    public void PopulateGrid()
+    {
+        random = new System.Random(seed);
+        placedObjects = new PlaceableObject[mapGenerator.mapWidth, mapGenerator.mapHeight];
+        placedObjectPositions.Clear();
+        objectsPlaced = 0;
+
+        while (objectsPlaced < maxObjects)
+        {
+            int x = random.Next(gridPadding, mapGenerator.mapWidth - gridPadding);
+            int y = random.Next(gridPadding, mapGenerator.mapHeight - gridPadding);
+
+            if (placedObjects[x, y] == null)
+            {
+                TryPlaceObject(x, y);
+            }
+
+            if (objectsPlaced >= minObjects && random.NextDouble() < 0.1f)
+                break;
+        }
+    }
+
+    public void SpawnObjects()
+    {
+        if (mapGenerator == null) return;
+
+        Vector3 mapOffset = new Vector3(
+            -mapGenerator.mapWidth * CELL_SIZE / 2f,
+            0,
+            -mapGenerator.mapHeight * CELL_SIZE / 2f
+        );
+        Vector3 cellOffset = new Vector3(CELL_SIZE / 2, 0, CELL_SIZE / 2);
+
+        // Draw placed objects
+        if (placedObjects != null)
+        {
+            for (int y = gridPadding; y < mapGenerator.mapHeight - gridPadding; y++)
+            {
+                for (int x = gridPadding; x < mapGenerator.mapWidth - gridPadding; x++)
+                {
+                    if (placedObjects[x, y] != null)
+                    {
+                        Vector3 position = new Vector3(x * CELL_SIZE, 0, y * CELL_SIZE) + mapOffset + cellOffset;
+                        // Gizmos.DrawCube(position, new Vector3(CELL_SIZE, 0.1f, CELL_SIZE));
+                        Instantiate(placedObjects[x, y].prefab, position, Quaternion.identity, groupHolder);
+                    }
+                }
+            }
+
+            // // Draw placed object positions
+            // foreach (var pos in placedObjectPositions)
+            // {
+            //     Vector3 position = new Vector3(pos.x * CELL_SIZE, 0, pos.y * CELL_SIZE) + mapOffset + cellOffset;
+            //     Gizmos.DrawWireCube(position, new Vector3(CELL_SIZE * placedObjects[pos.x, pos.y].cellSize.x, 0.1f, CELL_SIZE * placedObjects[pos.x, pos.y].cellSize.y));
+            // }
+        }
     }
 
     private const float CELL_SIZE = 2f;

@@ -10,9 +10,14 @@ public class ObjectPlacerEditor : Editor
 
         ObjectPlacer objectPlacer = (ObjectPlacer)target;
 
-        if (GUILayout.Button("Place Objects"))
+        if (GUILayout.Button("Populate Grid"))
         {
-            objectPlacer.PlaceObjects();
+            objectPlacer.PopulateGrid();
+        }
+
+        if (GUILayout.Button("Spawn Objects"))
+        {
+            objectPlacer.SpawnObjects();
         }
     }
 }
