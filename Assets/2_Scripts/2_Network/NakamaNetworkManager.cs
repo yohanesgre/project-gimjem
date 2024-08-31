@@ -1,14 +1,23 @@
 using System.Collections.Generic;
 using System.Text;
 using System.Threading.Tasks;
-using GimJem.Core;
+using GimJem.Utilities;
 using Nakama;
 using Nakama.TinyJson;
 using UnityEngine;
 using UnityEngine.SceneManagement;
+using EasyUI.Toast;
 
 namespace GimJem.Network
 {
+    public enum ConnectionStatus
+    {
+        Disconnected,
+        Connecting,
+        Connected,
+        Failed,
+    }
+
     public class NakamaNetworkManager : MonoBehaviour
     {
         public event System.Action<string> OnPlayerJoined;
@@ -16,23 +25,31 @@ namespace GimJem.Network
         public event System.Action<string, bool> OnPlayerReady;
         public event System.Action OnGameStarted;
         public event System.Action OnAllPlayersLoaded;
+        public event System.Action<ConnectionStatus> OnConnectionStateUpdated;
 
         private int playersLoadedCount = 0;
         private int totalPlayers = 0;
 
-        private const string SCHEME = "http"; // Replace with your Nakama server address scheme
-        private const string HOST = "http://localhost"; // Replace with your Nakama server address
-        private const int PORT = 7350; // Replace with your Nakama server port
-        private const string SERVER_KEY = "defaultkey"; // Replace with your server key
+        [Header("Nakama Server Settings")]
+        [SerializeField] private string SCHEME = "http"; // Replace with your Nakama server address scheme
+        [SerializeField] private string HOST = "http://localhost"; // Replace with your Nakama server address
+        [SerializeField] private int PORT = 7350; // Replace with your Nakama server port
+        [SerializeField] private string SERVER_KEY = "defaultkey"; // Replace with your server key
+
+        [Header("Debug")]
+        [ReadOnly][SerializeField] private bool _isHost;
+        public bool IsHost { get => _isHost; private set => _isHost = value; }
+
+        [ReadOnly][SerializeField] private string _playerId;
+        public string PlayerId { get => _playerId; private set => _playerId = value; }
+
+        [ReadOnly][SerializeField] private string _roomKey;
+        public string RoomKey { get => _roomKey; private set => _roomKey = value; }
 
         private IClient client;
         private ISession session;
         private ISocket socket;
         private IMatch currentMatch;
-
-        public bool IsHost { get; private set; }
-        public string PlayerId { get; private set; }
-        public string RoomKey { get; private set; }
 
         public static NakamaNetworkManager Instance { get; private set; }
 
@@ -57,16 +74,44 @@ namespace GimJem.Network
         #endregion
 
         #region Server Related
+
         /// <summary>
-        /// Connects to the Nakama server. This method is automatically called when Connect() is called.
+        /// Initializes the Nakama client with the provided server settings.
         /// </summary>
-        public void ConnectToServer()
+        /// <remarks>
+        /// This method sets up the Nakama client with the specified scheme, host, port, and server key.
+        /// The client timeout is set to 5 seconds.
+        /// </remarks>
+        public void InitConnectionClient()
         {
-            client = new Client(SCHEME, HOST, PORT, SERVER_KEY)
+            try
             {
-                Timeout = 5
-            };
+                client = new Client(SCHEME, HOST, PORT, SERVER_KEY)
+                {
+                    Timeout = 5
+                };
+
+            }
+            catch (System.Exception e)
+            {
+                ToastUtil.ShowErrorToast($"Failed to initialize Nakama client: {e.Message}");
+            }
         }
+
+        public string GetDeviceId()
+        {
+            // If the user's device ID is already stored, grab that - alternatively get the System's unique device identifier.
+            var deviceId = PlayerPrefs.GetString("deviceId", SystemInfo.deviceUniqueIdentifier);
+
+            // If the device identifier is invalid then let's generate a unique one.
+            if (deviceId == SystemInfo.unsupportedIdentifier)
+            {
+                deviceId = System.Guid.NewGuid().ToString();
+            }
+
+            return deviceId;
+        }
+
 
         /// <summary>
         /// Connects to the Nakama server and socket.
@@ -77,14 +122,33 @@ namespace GimJem.Network
         /// </remarks>
         public async Task Connect(string deviceId)
         {
-            session = await client.AuthenticateDeviceAsync(deviceId);
-            Debug.Log("Connected to Nakama server");
+            try
+            {
+                ToastUtil.ShowSuccessToast("Try connect to server...");
+                OnConnectionStateUpdated?.Invoke(ConnectionStatus.Connecting);
 
-            socket = client.NewSocket();
-            await socket.ConnectAsync(session);
-            Debug.Log("Connected to Nakama socket");
+                // Save the user's device ID to PlayerPrefs so it can be retrieved during a later play session for re-authenticating.
+                PlayerPrefs.SetString("deviceId", deviceId);
 
-            PlayerId = session.UserId;
+                session = await client.AuthenticateDeviceAsync(deviceId);
+                Debug.Log("Connected to Nakama server");
+
+                socket = client.NewSocket();
+                await socket.ConnectAsync(session);
+                Debug.Log("Connected to Nakama socket");
+
+                PlayerId = session.UserId;
+
+                await Task.Delay(2000);
+                OnConnectionStateUpdated?.Invoke(ConnectionStatus.Connected);
+                // Show success Toast
+                ToastUtil.ShowSuccessToast("Successfully connected to server");
+            }
+            catch (System.Exception e)
+            {
+                OnConnectionStateUpdated?.Invoke(ConnectionStatus.Failed);
+                ToastUtil.ShowErrorToast($"Failed to connect: {e.Message}");
+            }
         }
         #endregion
 
@@ -125,8 +189,7 @@ namespace GimJem.Network
             }
             catch (System.Exception e)
             {
-                Debug.LogError($"Failed to join room: {e.Message}");
-                throw;
+                ToastUtil.ShowErrorToast($"Failed to join room: {e.Message}");
             }
         }
 
@@ -154,27 +217,27 @@ namespace GimJem.Network
         public void RegisterLobbyHandlers()
         {
             socket.ReceivedMatchState += matchState =>
-         {
-             if (matchState.OpCode == NetworkConstants.LOBBY_READY_OP_CODE) // Ready state update
-             {
-                 var readyState = JsonParser.FromJson<Dictionary<string, bool>>(ConvertByteArrayToString(matchState.State));
-                 OnPlayerReady?.Invoke(matchState.UserPresence.UserId, readyState["IsReady"]);
-             }
-             else if (matchState.OpCode == NetworkConstants.LOBBY_GAME_START_OP_CODE) // Game start
-             {
-                 var startGameState = JsonParser.FromJson<Dictionary<string, object>>(ConvertByteArrayToString(matchState.State));
-                 totalPlayers = System.Convert.ToInt32(startGameState["TotalPlayers"]);
-                 LoadGameplayScene();
-             }
-             else if (matchState.OpCode == NetworkConstants.LOBBY_PLAYER_LOADED_OP_CODE) // Player loaded
-             {
-                 playersLoadedCount++;
-                 if (playersLoadedCount == totalPlayers)
-                 {
-                     OnAllPlayersLoaded?.Invoke();
-                 }
-             }
-         };
+            {
+                if (matchState.OpCode == NetworkConstants.LOBBY_READY_OP_CODE) // Ready state update
+                {
+                    var readyState = JsonParser.FromJson<Dictionary<string, bool>>(ConvertByteArrayToString(matchState.State));
+                    OnPlayerReady?.Invoke(matchState.UserPresence.UserId, readyState["IsReady"]);
+                }
+                else if (matchState.OpCode == NetworkConstants.LOBBY_GAME_START_OP_CODE) // Game start
+                {
+                    var startGameState = JsonParser.FromJson<Dictionary<string, object>>(ConvertByteArrayToString(matchState.State));
+                    totalPlayers = System.Convert.ToInt32(startGameState["TotalPlayers"]);
+                    LoadGameplayScene();
+                }
+                else if (matchState.OpCode == NetworkConstants.LOBBY_PLAYER_LOADED_OP_CODE) // Player loaded
+                {
+                    playersLoadedCount++;
+                    if (playersLoadedCount == totalPlayers)
+                    {
+                        OnAllPlayersLoaded?.Invoke();
+                    }
+                }
+            };
         }
 
         /// <summary>
@@ -291,6 +354,7 @@ namespace GimJem.Network
             return Encoding.UTF8.GetString(bytes);
         }
         #endregion
-    }
 
+
+    }
 }
