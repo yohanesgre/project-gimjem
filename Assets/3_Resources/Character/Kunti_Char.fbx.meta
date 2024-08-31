@@ -3,7 +3,18 @@ guid: aa43ec1e13bdbed4d9dc0e0b5ba9da84
 ModelImporter:
   serializedVersion: 22200
   internalIDToNameTable: []
-  externalObjects: {}
+  externalObjects:
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Kunti Texture
+    second: {fileID: 2100000, guid: 0e861cba14273484e874a923d027ef47, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: White
+    second: {fileID: -8848810374240701247, guid: 02c57bad1e10cca489ab47b610492f23,
+      type: 3}
   materials:
     materialImportMode: 2
     materialName: 0

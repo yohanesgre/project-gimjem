@@ -3,7 +3,18 @@ guid: 21ff2338833f848438180f18533bc864
 ModelImporter:
   serializedVersion: 22200
   internalIDToNameTable: []
-  externalObjects: {}
+  externalObjects:
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Pocong Texture
+    second: {fileID: 2100000, guid: edd5d5961793e334abf290203588a300, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: White
+    second: {fileID: -8848810374240701247, guid: 02c57bad1e10cca489ab47b610492f23,
+      type: 3}
   materials:
     materialImportMode: 2
     materialName: 0

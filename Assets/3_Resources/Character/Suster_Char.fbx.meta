@@ -3,7 +3,18 @@ guid: c13a3a03baeb76f4ea13eba8d6c61da1
 ModelImporter:
   serializedVersion: 22200
   internalIDToNameTable: []
-  externalObjects: {}
+  externalObjects:
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: White
+    second: {fileID: -8848810374240701247, guid: 02c57bad1e10cca489ab47b610492f23,
+      type: 3}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: suster Texture
+    second: {fileID: 2100000, guid: 34d78327d578d164fbae21c0bfea7dbf, type: 2}
   materials:
     materialImportMode: 2
     materialName: 0

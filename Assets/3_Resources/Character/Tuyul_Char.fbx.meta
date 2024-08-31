@@ -3,7 +3,18 @@ guid: b6b4aece739744942bfd74c9e62e5328
 ModelImporter:
   serializedVersion: 22200
   internalIDToNameTable: []
-  externalObjects: {}
+  externalObjects:
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: White
+    second: {fileID: -8848810374240701247, guid: 02c57bad1e10cca489ab47b610492f23,
+      type: 3}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: tuyul texture
+    second: {fileID: 2100000, guid: 25c50c40901f0e844aeca3ff7b8d02c9, type: 2}
   materials:
     materialImportMode: 2
     materialName: 0
