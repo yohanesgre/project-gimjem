@@ -18,15 +18,7 @@ namespace GimJem.UI.MainMenu
         public void Init(MainMenuManager manager)
         {
             this.manager = manager;
-            manager.OnPlayerJoined += OnPlayerJoined;
-        }
 
-        private void OnDestroy()
-        {
-            if (manager != null)
-            {
-                manager.OnPlayerJoined -= OnPlayerJoined;
-            }
         }
 
         private void Awake()
@@ -49,6 +41,7 @@ namespace GimJem.UI.MainMenu
         private void OnClickJoinRoomButton()
         {
             manager.JoinRoom(roomKeyInputField.text);
+            Hide();
         }
 
         private void OnClickCancelButton()
@@ -58,18 +51,13 @@ namespace GimJem.UI.MainMenu
 
         public void Hide()
         {
-            GetComponent<Canvas>().enabled = false;
+            gameObject.SetActive(false);
         }
 
         public void Show()
         {
-            GetComponent<Canvas>().enabled = true;
+            gameObject.SetActive(true);
         }
 
-
-        private void OnPlayerJoined(string playerId, bool isSelf, bool isHost, int minPlayerCount)
-        {
-            // Hide();
-        }
     }
 }

@@ -1,19 +1,23 @@
 using System;
+using System.Linq;
 using TMPro;
 using UnityEngine;
 
 public class BakiakCharRenderer : MonoBehaviour
 {
-    public TMP_Text displayText;
-    [SerializeField] private char currentChar;
+    [SerializeField] private TMP_Text[] displayText;
+    [SerializeField] private char[] currentChar;
     private System.Random rnd = new System.Random();
 
     private CameraManager cameraManager;
     private BakiakGameplayManager gameplayManager;
     private bool isInputEnabled = true;
+    private int playerCount;
 
-    void Start()
+    public void Initialize(int playerCount)
     {
+        this.playerCount = playerCount;
+        currentChar = new char[playerCount];
         GenerateNewCharacter();
 
         // Find and store the CameraManager reference
@@ -34,6 +38,7 @@ public class BakiakCharRenderer : MonoBehaviour
             Debug.LogWarning("BakiakGameplayManager not found in the scene.");
         }
     }
+
 
     void OnDestroy()
     {
@@ -58,30 +63,40 @@ public class BakiakCharRenderer : MonoBehaviour
 
     void GenerateNewCharacter()
     {
-        currentChar = (char)rnd.Next(65, 91); // ASCII values for A-Z
-        displayText.text = currentChar.ToString();
+        currentChar = new char[playerCount];
+        for (int i = 0; i < playerCount; i++)
+        {
+            currentChar[i] = (char)rnd.Next(65, 91); // ASCII values for A-Z
+
+            displayText[i].text = currentChar[i].ToString();
+        }
+
     }
 
     void CheckInput(char input)
     {
-        if (input == currentChar)
+        for (int i = 0; i < playerCount; i++)
         {
-            if (gameplayManager != null)
+            if (input == currentChar[i])
             {
-                gameplayManager.HandleCorrectInput(currentChar);
+                if (gameplayManager != null)
+                {
+                    gameplayManager.HandleCorrectInput(i, currentChar[i]);
 
-                if (!gameplayManager.IsAnyPlayerFinished())
-                {
-                    GenerateNewCharacter();
-                }
-                else
-                {
-                    // Handle game end scenario
-                    // For example: disable input, show game over UI, etc.  
-                    isInputEnabled = false;
+                    if (!gameplayManager.IsAnyPlayerFinished())
+                    {
+                        GenerateNewCharacter();
+                    }
+                    else
+                    {
+                        // Handle game end scenario
+                        // For example: disable input, show game over UI, etc.  
+                        isInputEnabled = false;
+                    }
                 }
             }
         }
+
     }
 
     private void OnCameraSwitch(Camera newCamera)

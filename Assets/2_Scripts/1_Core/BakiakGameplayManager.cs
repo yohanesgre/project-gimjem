@@ -2,28 +2,45 @@ using UnityEngine;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using GimJem.Network;
+using UnityEngine.SceneManagement;
+using System.Collections;
 
 public class BakiakGameplayManager : MonoBehaviour
 {
-    [SerializeField] private NakamaNetworkManager nakamaNetworkManager;
-    [SerializeField] private GameObject playerPrefab;
+    [SerializeField] private BakiakCharRenderer charRenderer;
+    [SerializeField] private GameObject[] playerPrefab;
     [SerializeField] private Transform[] spawnPoints;
     [SerializeField] private Transform[] finishLines;
-    [SerializeField] private int maxPlayers = 4;
     private List<BakiakPlayerController> players = new List<BakiakPlayerController>();
-    private int finishedPlayersCount = 0;
-
+    private int playerCount = 1;
     public Action<int> OnPlayerMove;
     public Action<int> OnGameFinished;
     public event Action<int, char> OnCorrectInput;
-    private int currentPlayerIndex = 0;
+
+    [SerializeField] private int firstToWin = 1;
+    [SerializeField] private int playerWonIndex = -1;
 
     private void Start()
     {
         SpawnPlayers();
+        charRenderer.Initialize(playerCount);
     }
 
+    private void Update()
+    {
+        if (IsAnyPlayerFirstToWin())
+        {
+            OnGameFinished?.Invoke(playerWonIndex);
+            return;
+        }
+
+        if (IsAnyPlayerFinished())
+        {
+
+            StartCoroutine(IE_Refresh_Level());
+            return;
+        }
+    }
 
     private void SpawnPlayers()
     {
@@ -33,16 +50,15 @@ public class BakiakGameplayManager : MonoBehaviour
             return;
         }
 
-        int playerCount = Mathf.Min(maxPlayers, spawnPoints.Length, finishLines.Length);
+        playerCount = Mathf.Max(1, playerPrefab.Length);
 
         for (int i = 0; i < playerCount; i++)
         {
-            GameObject playerObj = Instantiate(playerPrefab, spawnPoints[i].position, spawnPoints[i].rotation);
+            GameObject playerObj = Instantiate(playerPrefab[i], spawnPoints[i].position, spawnPoints[i].rotation);
             BakiakPlayerController player = playerObj.GetComponent<BakiakPlayerController>();
             if (player != null)
             {
-                player.Initialize(this, finishLines[i].position, i);
-                player.OnPlayerFinished += HandlePlayerFinished;
+                player.Initialize(this, spawnPoints[i].position, finishLines[i].position, i);
                 players.Add(player);
             }
         }
@@ -51,25 +67,10 @@ public class BakiakGameplayManager : MonoBehaviour
     }
 
 
-    public void HandleCorrectInput(char correctChar)
+    public void HandleCorrectInput(int playerIndex, char correctChar)
     {
         Debug.Log($"Correct input: {correctChar}");
-        OnCorrectInput?.Invoke(currentPlayerIndex, correctChar);
-
-        // Move to the next player (you may want to implement your own logic here)
-        currentPlayerIndex = (currentPlayerIndex + 1) % players.Count;
-    }
-
-    private void HandlePlayerFinished(int playerIndex)
-    {
-        finishedPlayersCount++;
-        Debug.Log($"Player {playerIndex} finished! ({finishedPlayersCount}/{players.Count})");
-
-        if (finishedPlayersCount == players.Count)
-        {
-            OnGameFinished?.Invoke(players.Count);
-            Debug.Log("All players have finished!");
-        }
+        OnCorrectInput?.Invoke(playerIndex, correctChar);
     }
 
 
@@ -90,5 +91,26 @@ public class BakiakGameplayManager : MonoBehaviour
     public bool IsAnyPlayerFinished()
     {
         return players.Any(player => player.IsFinished);
+    }
+
+    public bool IsAnyPlayerFirstToWin()
+    {
+        var result = false;
+        for (int i = 0; i < players.Count; i++)
+        {
+            if (players[i].PlayerScore == firstToWin)
+            {
+                playerWonIndex = i;
+                result = true;
+                break;
+            }
+        }
+        return result;
+    }
+
+    private IEnumerator IE_Refresh_Level()
+    {
+        yield return new WaitForSeconds(1);
+        players.ForEach(player => player.ResetPlayer());
     }
 }

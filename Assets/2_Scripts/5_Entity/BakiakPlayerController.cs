@@ -4,18 +4,20 @@ using System;
 public class BakiakPlayerController : MonoBehaviour
 {
     [SerializeField] private float stepDistance = 1f;
+    private Vector3 startingPosition;
     private Vector3 finishLine;
     private bool hasFinished = false;
     public bool IsFinished => hasFinished;
     private int playerIndex;
-
+    private int playerScore = 0;
+    public int PlayerScore => playerScore;
     private BakiakGameplayManager gameplayManager;
 
-    public event Action<int> OnPlayerFinished;
 
-    public void Initialize(BakiakGameplayManager manager, Vector3 finish, int index)
+    public void Initialize(BakiakGameplayManager manager, Vector3 start, Vector3 finish, int index)
     {
         gameplayManager = manager;
+        startingPosition = start;
         finishLine = finish;
         playerIndex = index;
 
@@ -27,6 +29,12 @@ public class BakiakPlayerController : MonoBehaviour
         {
             Debug.LogError("GameplayManager is null!");
         }
+    }
+
+    public void ResetPlayer()
+    {
+        hasFinished = false;
+        transform.position = startingPosition;
     }
 
     private void OnDestroy()
@@ -61,7 +69,7 @@ public class BakiakPlayerController : MonoBehaviour
         if (Vector3.Distance(transform.position, finishLine) < 0.01f)
         {
             hasFinished = true;
-            OnPlayerFinished?.Invoke(playerIndex);
+            playerScore++;
             Debug.Log($"Player {gameObject.name} reached the finish line!");
         }
     }

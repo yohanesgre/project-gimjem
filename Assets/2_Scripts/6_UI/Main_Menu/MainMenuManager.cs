@@ -17,8 +17,8 @@ public class MainMenuManager : MonoBehaviour
     public event Action OnGameStarted;
     public event Action OnAllPlayersLoaded;
     public event Action<ConnectionStatus> OnConnectionStateUpdated;
-    public event Action OnRoomCreated;
-
+    public event Action<string> OnRoomCreated;
+    public event Action OnLeaveRoom;
     private NakamaNetworkManager nakamaNetworkManager;
 
     [Header("Controllers")]
@@ -39,7 +39,7 @@ public class MainMenuManager : MonoBehaviour
         NakamaNetworkManager.Instance.OnGameStarted += NetworkOnGameStarted;
         NakamaNetworkManager.Instance.OnAllPlayersLoaded += NetworkOnAllPlayersLoaded;
         NakamaNetworkManager.Instance.OnConnectionStateUpdated += NetworkOnConnectionStateUpdated;
-
+        NakamaNetworkManager.Instance.OnLeaveRoom += NetworkOnLeaveRoom;
         for (int i = 0; i < controllers.Count; i++)
         {
             controllers[i].GetComponent<IUIController<MainMenuManager>>().Init(this);
@@ -57,12 +57,12 @@ public class MainMenuManager : MonoBehaviour
             NakamaNetworkManager.Instance.OnGameStarted -= NetworkOnGameStarted;
             NakamaNetworkManager.Instance.OnAllPlayersLoaded -= NetworkOnAllPlayersLoaded;
             NakamaNetworkManager.Instance.OnConnectionStateUpdated -= NetworkOnConnectionStateUpdated;
+            NakamaNetworkManager.Instance.OnLeaveRoom -= NetworkOnLeaveRoom;
         }
     }
 
     private void NetworkOnPlayerJoined(string playerId, bool isSelf)
     {
-        Debug.Log($"{GetType().Name} | NetworkOnPlayerJoined | Player {playerId} joined. IsSelf: {isSelf}");
         OnPlayerJoined?.Invoke(playerId, isSelf, nakamaNetworkManager.IsHost, 1);
     }
 
@@ -76,13 +76,17 @@ public class MainMenuManager : MonoBehaviour
         OnPlayerReadyChanged?.Invoke(playerId, isReady, nakamaNetworkManager.IsHost);
     }
 
-    private void NetworkOnRoomCreated()
+    private void NetworkOnRoomCreated(string playerId)
     {
-        OnRoomCreated?.Invoke();
+        OnRoomCreated?.Invoke(playerId);
 
-        // Copy room key to clipboard
         GUIUtility.systemCopyBuffer = nakamaNetworkManager.RoomKey;
-        ToastUtil.ShowSuccessToast($"Room created. Key: {nakamaNetworkManager.RoomKey}\nCopied to clipboard!");
+        ToastUtil.ShowSuccessToast($"Copied room key to clipboard!");
+    }
+
+    private void NetworkOnLeaveRoom()
+    {
+        OnLeaveRoom?.Invoke();
     }
 
     private void NetworkOnGameStarted()
@@ -97,6 +101,16 @@ public class MainMenuManager : MonoBehaviour
 
     private void NetworkOnConnectionStateUpdated(ConnectionStatus status)
     {
+        switch (status)
+        {
+            case ConnectionStatus.Connected:
+                ToastUtil.ShowSuccessToast("Connected to server");
+                break;
+            case ConnectionStatus.Connecting:
+                ToastUtil.ShowSuccessToast("Try connect to server...");
+                break;
+        }
+
         OnConnectionStateUpdated?.Invoke(status);
     }
 
@@ -106,7 +120,7 @@ public class MainMenuManager : MonoBehaviour
         await nakamaNetworkManager.Connect(deviceId);
     }
 
-    public async Task CreateRoomAsync()
+    public async void CreateRoomAsync()
     {
         try
         {
@@ -140,6 +154,11 @@ public class MainMenuManager : MonoBehaviour
     public async void LeaveRoom()
     {
         await nakamaNetworkManager.LeaveRoom();
+    }
+
+    public void SetPlayerReady(bool isReady)
+    {
+        nakamaNetworkManager.SetPlayerReady(isReady);
     }
 
     public void OpenJoinRoomDialog()
