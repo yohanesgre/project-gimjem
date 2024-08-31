@@ -119,6 +119,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   createRoomButton: {fileID: 8750636375627571170}
   joinRoomButton: {fileID: 2016960836802632015}
+  connectButton: {fileID: 7646012185434601431}
 --- !u!1 &4614656027439110621
 GameObject:
   m_ObjectHideFlags: 0
@@ -178,7 +179,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   m_Material: {fileID: 0}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
-  m_RaycastTarget: 1
+  m_RaycastTarget: 0
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
   m_OnCullStateChanged:
@@ -338,6 +339,18 @@ RectTransform:
     type: 3}
   m_PrefabInstance: {fileID: 768478205908340807}
   m_PrefabAsset: {fileID: 0}
+--- !u!114 &7646012185434601431 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 6968820462686627728, guid: 1eccf6a5e43a5174b9391d5f9d8875ba,
+    type: 3}
+  m_PrefabInstance: {fileID: 768478205908340807}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4e29b1a8efbd4b44bb3f3716e73f07ff, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1001 &3023011943296806582
 PrefabInstance:
   m_ObjectHideFlags: 0

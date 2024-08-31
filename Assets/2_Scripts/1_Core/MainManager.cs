@@ -1,3 +1,4 @@
+
 using System;
 using System.Threading.Tasks;
 using GimJem.Network;
@@ -8,9 +9,6 @@ namespace GimJem.Core
     public class MainManager : MonoBehaviour
     {
         public static MainManager Instance { get; private set; }
-
-        [Header("Prefabs")]
-        [SerializeField] private GameObject nakamaNetworkManagerPrefab;
 
         private void Awake()
         {
@@ -38,7 +36,6 @@ namespace GimJem.Core
 
         private void InitializeNakamaNetworkManager()
         {
-            Instantiate(nakamaNetworkManagerPrefab, transform.parent);
             NakamaNetworkManager.Instance.InitConnectionClient();
         }
 
@@ -46,14 +43,6 @@ namespace GimJem.Core
         {
             var deviceId = NakamaNetworkManager.Instance.GetDeviceId();
             await NakamaNetworkManager.Instance.Connect(deviceId);
-        }
-
-        private void OnValidate()
-        {
-            if (nakamaNetworkManagerPrefab == null)
-            {
-                throw new System.Exception("NakamaNetworkManagerPrefab is not set");
-            }
         }
     }
 }

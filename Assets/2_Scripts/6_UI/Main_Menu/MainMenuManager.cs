@@ -1,13 +1,23 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using GimJem.Core;
 using GimJem.Network;
+using GimJem.UI.MainMenu;
 using GimJem.Utilities;
 using UnityEngine;
 
 public class MainMenuManager : MonoBehaviour
 {
+    public event Action<string> OnPlayerJoined;
+    public event Action<string> OnPlayerLeft;
+    public event Action<string, bool> OnPlayerReady;
+    public event Action OnGameStarted;
+    public event Action OnAllPlayersLoaded;
+    public event Action<ConnectionStatus> OnConnectionStateUpdated;
+    public event Action OnCreateRoom;
+
     private NakamaNetworkManager nakamaNetworkManager;
 
     [Header("Controllers")]
@@ -21,62 +31,59 @@ public class MainMenuManager : MonoBehaviour
             throw new Exception("NakamaNetworkManager is not found");
         }
     }
-
-    private void OnEnable()
+    private void Start()
     {
+        NakamaNetworkManager.Instance.OnPlayerJoined += NetworkOnPlayerJoined;
+        NakamaNetworkManager.Instance.OnPlayerLeft += NetworkOnPlayerLeft;
+        NakamaNetworkManager.Instance.OnPlayerReady += NetworkOnPlayerReady;
+        NakamaNetworkManager.Instance.OnGameStarted += NetworkOnGameStarted;
+        NakamaNetworkManager.Instance.OnAllPlayersLoaded += NetworkOnAllPlayersLoaded;
+        NakamaNetworkManager.Instance.OnConnectionStateUpdated += NetworkOnConnectionStateUpdated;
+
         for (int i = 0; i < controllers.Count; i++)
         {
-            controllers[i].GetComponent<IController<MainMenuManager>>().Init(this);
+            controllers[i].GetComponent<IUIController<MainMenuManager>>().Init(this);
         }
-
-        NakamaNetworkManager.Instance.OnPlayerJoined += OnPlayerJoined;
-        NakamaNetworkManager.Instance.OnPlayerLeft += OnPlayerLeft;
-        NakamaNetworkManager.Instance.OnPlayerReady += OnPlayerReady;
-        NakamaNetworkManager.Instance.OnGameStarted += OnGameStarted;
-        NakamaNetworkManager.Instance.OnGameStarted += OnGameStarted;
-        NakamaNetworkManager.Instance.OnAllPlayersLoaded += OnAllPlayersLoaded;
-        NakamaNetworkManager.Instance.OnConnectionStateUpdated += OnConnectionStateUpdated;
     }
 
     private void OnDisable()
     {
-        NakamaNetworkManager.Instance.OnPlayerJoined -= OnPlayerJoined;
-        NakamaNetworkManager.Instance.OnPlayerLeft -= OnPlayerLeft;
-        NakamaNetworkManager.Instance.OnPlayerReady -= OnPlayerReady;
-        NakamaNetworkManager.Instance.OnGameStarted -= OnGameStarted;
-        NakamaNetworkManager.Instance.OnGameStarted -= OnGameStarted;
-        NakamaNetworkManager.Instance.OnAllPlayersLoaded -= OnAllPlayersLoaded;
-        NakamaNetworkManager.Instance.OnConnectionStateUpdated -= OnConnectionStateUpdated;
+        NakamaNetworkManager.Instance.OnPlayerJoined -= NetworkOnPlayerJoined;
+        NakamaNetworkManager.Instance.OnPlayerLeft -= NetworkOnPlayerLeft;
+        NakamaNetworkManager.Instance.OnPlayerReady -= NetworkOnPlayerReady;
+        NakamaNetworkManager.Instance.OnGameStarted -= NetworkOnGameStarted;
+        NakamaNetworkManager.Instance.OnAllPlayersLoaded -= NetworkOnAllPlayersLoaded;
+        NakamaNetworkManager.Instance.OnConnectionStateUpdated -= NetworkOnConnectionStateUpdated;
     }
 
-    private void OnPlayerJoined(string playerId)
+    private void NetworkOnPlayerJoined(string playerId)
     {
-        Debug.Log($"Player {playerId} joined the game");
+        OnPlayerJoined?.Invoke(playerId);
     }
 
-    private void OnPlayerLeft(string playerId)
+    private void NetworkOnPlayerLeft(string playerId)
     {
-        Debug.Log($"Player {playerId} left the game");
+        OnPlayerLeft?.Invoke(playerId);
     }
 
-    private void OnPlayerReady(string playerId, bool isReady)
+    private void NetworkOnPlayerReady(string playerId, bool isReady)
     {
-        Debug.Log($"Player {playerId} is ready: {isReady}");
+        OnPlayerReady?.Invoke(playerId, isReady);
     }
 
-    private void OnGameStarted()
+    private void NetworkOnGameStarted()
     {
-        Debug.Log("Game started");
+        OnGameStarted?.Invoke();
     }
 
-    private void OnAllPlayersLoaded()
+    private void NetworkOnAllPlayersLoaded()
     {
-        Debug.Log("All players loaded");
+        OnAllPlayersLoaded?.Invoke();
     }
 
-    private void OnConnectionStateUpdated(ConnectionStatus status)
+    private void NetworkOnConnectionStateUpdated(ConnectionStatus status)
     {
-        Debug.Log($"Connection state updated: {status}");
+        OnConnectionStateUpdated?.Invoke(status);
     }
 
     public async void OnClickConnectToServerButton()
@@ -85,25 +92,46 @@ public class MainMenuManager : MonoBehaviour
         await NakamaNetworkManager.Instance.Connect(deviceId);
     }
 
-    public async void OnClickCreateRoomButton()
+    public void OnClickCreateRoomButton()
+    {
+
+    }
+
+    public async Task CreateRoomAsync()
     {
         try
         {
             string roomKey = await NakamaNetworkManager.Instance.CreateRoom();
-            ToastUtil.ShowSuccessToast($"Room created. Key: {roomKey}");
-
+            // Copy room key to clipboard
+            GUIUtility.systemCopyBuffer = roomKey;
+            ToastUtil.ShowSuccessToast($"Room created. Key: {roomKey}\nCopied to clipboard!");
         }
-        catch (System.Exception e)
+        catch (Exception e)
         {
             ToastUtil.ShowErrorToast($"Failed to create room: {e.Message}");
         }
+    }
+
+    public void OpenJoinRoomDialog()
+    {
+        GetController<DialogJoinRoomController>().Show();
+    }
+
+    public void CloseJoinRoomDialog()
+    {
+        GetController<DialogJoinRoomController>().Hide();
+    }
+
+    private T GetController<T>() where T : Component, IUIController<MainMenuManager>
+    {
+        return controllers.Find(x => x.GetComponent<T>() != null).GetComponent<T>();
     }
 
     private void OnValidate()
     {
         if (controllers == null || controllers.Count == 0)
         {
-            throw new System.Exception("Controllers list is empty");
+            throw new Exception("Controllers list is empty");
         }
     }
 }

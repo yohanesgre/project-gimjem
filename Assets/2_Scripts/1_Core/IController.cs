@@ -4,9 +4,11 @@ using UnityEngine;
 
 namespace GimJem.Core
 {
-    public interface IController<T>
+    public interface IUIController<T>
     {
         void Init(T manager);
+        void Show();
+        void Hide();
     }
 
 }
