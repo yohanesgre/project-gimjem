@@ -3,71 +3,63 @@ using System;
 
 public class TugWarPlayerController : MonoBehaviour
 {
-    [SerializeField] private float stepDistance = 1f;
-    private Vector3 finishLine;
-    private bool hasFinished = false;
-    public bool IsFinished => hasFinished;
-    private int playerIndex;
+    [SerializeField] private float moveSpeed = 5f;
+    [SerializeField] private Transform finishLine;
+    [SerializeField] private bool isFinished = false;
+    private Vector3 centerPoint;
 
-    private TugWarGameplayManager gameplayManager;
+    public bool IsFinished => isFinished;
 
-    public event Action<int> OnPlayerFinished;
-
-    public void Initialize(TugWarGameplayManager manager, Vector3 finish, int index)
+    public void Initialize(Vector3 center, Transform finishLine)
     {
-        gameplayManager = manager;
-        finishLine = finish;
-        playerIndex = index;
+        UpdateCenterPoint(center);
+        this.finishLine = finishLine;
+    }
 
-        if (gameplayManager != null)
+    public void UpdateCenterPoint(Vector3 newCenter)
+    {
+        centerPoint = new Vector3(newCenter.x, transform.position.y, newCenter.z);
+    }
+
+    private void Update()
+    {
+        if (!IsAtCenter())
         {
-            gameplayManager.OnCorrectInput += OnCorrectInput;
-        }
-        else
-        {
-            Debug.LogError("GameplayManager is null!");
+            MoveTowardsCenter();
         }
     }
 
-    private void OnDestroy()
+    private void MoveTowardsCenter()
     {
-        if (gameplayManager != null)
-        {
-            gameplayManager.OnCorrectInput -= OnCorrectInput;
-        }
-    }
-
-    private void OnCorrectInput(int index, char correctChar)
-    {
-        if (index == playerIndex && !hasFinished)
-        {
-            MoveStep();
-        }
-    }
-
-    private void MoveStep()
-    {
-        Vector3 directionToFinish = (finishLine - transform.position).normalized;
-        Vector3 newPosition = transform.position + directionToFinish * stepDistance;
-
-        // Ensure the new position doesn't overshoot the finish line
-        if (Vector3.Distance(newPosition, finishLine) > Vector3.Distance(transform.position, finishLine))
-        {
-            newPosition = finishLine;
-        }
-
+        Vector3 targetPosition = new Vector3(centerPoint.x, transform.position.y, centerPoint.z);
+        Vector3 newPosition = Vector3.MoveTowards(transform.position, targetPosition, moveSpeed * Time.deltaTime);
         transform.position = newPosition;
-
-        if (Vector3.Distance(transform.position, finishLine) < 0.01f)
-        {
-            hasFinished = true;
-            OnPlayerFinished?.Invoke(playerIndex);
-            Debug.Log($"Player {gameObject.name} reached the finish line!");
-        }
     }
 
-    public bool HasFinished()
+    private bool IsAtCenter()
     {
-        return hasFinished;
+        Vector2 currentPositionXZ = new Vector2(transform.position.x, transform.position.z);
+        Vector2 centerPointXZ = new Vector2(centerPoint.x, centerPoint.z);
+        return Vector2.Distance(currentPositionXZ, centerPointXZ) < 0.01f;
+    }
+
+    public Vector3 GetPosition()
+    {
+        return transform.position;
+    }
+
+    public Vector3 GetCenterPoint()
+    {
+        return centerPoint;
+    }
+
+    public void SetFinished()
+    {
+        isFinished = true;
+    }
+
+    public Transform GetFinishLine()
+    {
+        return finishLine;
     }
 }

@@ -5,23 +5,22 @@ using UnityEngine;
 
 public class TugWarGameplayManager : MonoBehaviour
 {
+    [SerializeField] private RopeController ropeController;
     [SerializeField] private GameObject playerPrefab;
     [SerializeField] private Transform[] spawnPoints;
     [SerializeField] private Transform[] finishLines;
-    [SerializeField] private int maxPlayers = 4;
-    private List<TugWarPlayerController> players = new List<TugWarPlayerController>();
-    private int finishedPlayersCount = 0;
+    [SerializeField] private int maxPlayers = 1; // Set to 1 to control only the first player
+    [SerializeField] private List<GameObject> players = new List<GameObject>();
 
-    public Action<int> OnPlayerMove;
-    public Action<int> OnGameFinished;
-    public event Action<int, char> OnCorrectInput;
-    private int currentPlayerIndex = 0;
+    public Action<char> OnCorrectInput;
+    public Action OnGameFinished;
+
+    [SerializeField] private float stepSize = 0.01f; // Step size for movement
 
     private void Start()
     {
         SpawnPlayers();
     }
-
 
     private void SpawnPlayers()
     {
@@ -31,63 +30,69 @@ public class TugWarGameplayManager : MonoBehaviour
             return;
         }
 
-        int playerCount = Mathf.Min(maxPlayers, spawnPoints.Length, finishLines.Length);
-
-        for (int i = 0; i < playerCount; i++)
+        for (int i = 0; i < maxPlayers; i++)
         {
             GameObject playerObj = Instantiate(playerPrefab, spawnPoints[i].position, spawnPoints[i].rotation);
             TugWarPlayerController player = playerObj.GetComponent<TugWarPlayerController>();
             if (player != null)
             {
-                player.Initialize(this, finishLines[i].position, i);
-                player.OnPlayerFinished += HandlePlayerFinished;
-                players.Add(player);
+                player.Initialize(spawnPoints[i].position, finishLines[i]);
+                players.Add(playerObj);
             }
         }
 
-        Debug.Log($"Spawned {players.Count} players");
+        Debug.Log($"Spawned {players.Count} player(s)");
     }
-
 
     public void HandleCorrectInput(char correctChar)
     {
-        Debug.Log($"Correct input: {correctChar}");
-        OnCorrectInput?.Invoke(currentPlayerIndex, correctChar);
-
-        // Move to the next player (you may want to implement your own logic here)
-        currentPlayerIndex = (currentPlayerIndex + 1) % players.Count;
-    }
-
-    private void HandlePlayerFinished(int playerIndex)
-    {
-        finishedPlayersCount++;
-        Debug.Log($"Player {playerIndex} finished! ({finishedPlayersCount}/{players.Count})");
-
-        if (finishedPlayersCount == players.Count)
+        OnCorrectInput?.Invoke(correctChar);
+        if (players.Count > 0 && ropeController != null)
         {
-            OnGameFinished?.Invoke(players.Count);
-            Debug.Log("All players have finished!");
+            // Move the rope
+            TugWarPlayerController firstPlayer = players[0].GetComponent<TugWarPlayerController>();
+            Vector3 directionToPlayer = (firstPlayer.GetPosition() - ropeController.transform.position).normalized;
+            Vector3 movementDirection = new Vector3(-directionToPlayer.x, 0f, -directionToPlayer.z).normalized;
+            ropeController.MoveInDirection(movementDirection * stepSize);
+
+            for (int i = 0; i < players.Count; i++)
+            {
+                players[i].GetComponent<TugWarPlayerController>().UpdateCenterPoint(spawnPoints[i].position);
+            }
         }
     }
 
-
-    public TugWarPlayerController GetPlayer(int index)
+    public TugWarPlayerController GetPlayer()
     {
-        if (index >= 0 && index < players.Count)
-        {
-            return players[index];
-        }
-        return null;
+        return players.Count > 0 ? players[0].GetComponent<TugWarPlayerController>() : null;
     }
 
-    public int GetPlayerCount()
+    public bool IsPlayerFinished()
     {
-        return players.Count;
+        return players.Count > 0 && players[0].GetComponent<TugWarPlayerController>().IsFinished;
+    }
+
+    public void HandleObjectExitRaycastZone(GameObject obj)
+    {
+        Debug.Log($"Object exited: {obj.name}");
+        if (obj == players[0].GetComponent<TugWarPlayerController>().GetFinishLine().gameObject)
+        {
+            SetPlayerWin();
+        }
+    }
+
+    private void SetPlayerWin()
+    {
+        if (players.Count > 0 && !players[0].GetComponent<TugWarPlayerController>().IsFinished)
+        {
+            players[0].GetComponent<TugWarPlayerController>().SetFinished();
+            Debug.Log("Player has won!");
+            OnGameFinished?.Invoke();
+        }
     }
 
     public bool IsAnyPlayerFinished()
     {
-        return players.Any(player => player.IsFinished);
+        return players.Any(player => player.GetComponent<TugWarPlayerController>().IsFinished);
     }
-
 }

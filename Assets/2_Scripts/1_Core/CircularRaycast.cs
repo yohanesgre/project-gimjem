@@ -1,5 +1,6 @@
 using UnityEngine;
 using System.Collections.Generic;
+using UnityEditor.UIElements;
 
 public class CircularRaycast : MonoBehaviour
 {
@@ -8,12 +9,13 @@ public class CircularRaycast : MonoBehaviour
     public float maxDistance = 10f;
     public LayerMask layerMask = Physics.DefaultRaycastLayers;
 
-    private HNSGameplayManager gameplayManager;
-    [SerializeField] private List<GameObject> hitObjects = new List<GameObject>();
+    private TugWarGameplayManager gameplayManager;
+    private List<GameObject> hitObjects = new List<GameObject>();
+    private List<GameObject> previousHitObjects = new List<GameObject>();
 
     private void Start()
     {
-        gameplayManager = FindObjectOfType<HNSGameplayManager>();
+        gameplayManager = FindObjectOfType<TugWarGameplayManager>();
     }
 
     private void Update()
@@ -40,11 +42,16 @@ public class CircularRaycast : MonoBehaviour
             }
         }
 
-        // Send hit objects to GameplayManager
-        if (gameplayManager != null)
+        // Check for objects that have exited the raycast zone
+        foreach (GameObject obj in previousHitObjects)
         {
-            gameplayManager.HandleRaycastHits(hitObjects);
+            if (!hitObjects.Contains(obj) && gameplayManager != null)
+            {
+                gameplayManager.HandleObjectExitRaycastZone(obj);
+            }
         }
+
+        previousHitObjects = new List<GameObject>(hitObjects);
     }
 
     private void OnDrawGizmos()
