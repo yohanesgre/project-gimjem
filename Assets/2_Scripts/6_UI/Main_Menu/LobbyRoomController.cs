@@ -11,10 +11,13 @@ namespace Game.UI.MainMenu
         private MainMenuManager manager;
         [SerializeField] private Button startGameButton;
         [SerializeField] private Button leaveRoomButton;
+        [SerializeField] private Button readyButton;
+
         [SerializeField] private TMP_Text playerCountText;
         [SerializeField] private PlayerListAdapter playerListAdapter;
-        [SerializeField] private int playerCount = 1;
+        [SerializeField] private int playerCount = 0;
         [SerializeField] private bool isHost = false;
+        [SerializeField] private bool isReady = false;
 
         private void Awake()
         {
@@ -28,18 +31,21 @@ namespace Game.UI.MainMenu
             manager.OnPlayerLeft += OnPlayerLeft;
             manager.OnPlayerReadyChanged += OnPlayerReady;
             manager.OnRoomCreated += OnCreateRoom;
+            manager.OnLeaveRoom += OnLeaveRoom;
         }
 
         private void OnEnable()
         {
             startGameButton.onClick.AddListener(OnClickStartGameButton);
             leaveRoomButton.onClick.AddListener(OnClickLeaveRoomButton);
+            readyButton.onClick.AddListener(OnClickReadyButton);
         }
 
         private void OnDisable()
         {
             startGameButton.onClick.RemoveListener(OnClickStartGameButton);
             leaveRoomButton.onClick.RemoveListener(OnClickLeaveRoomButton);
+            readyButton.onClick.RemoveListener(OnClickReadyButton);
         }
 
         private void OnDestroy()
@@ -50,18 +56,18 @@ namespace Game.UI.MainMenu
                 manager.OnPlayerLeft -= OnPlayerLeft;
                 manager.OnPlayerReadyChanged -= OnPlayerReady;
                 manager.OnRoomCreated -= OnCreateRoom;
+                manager.OnLeaveRoom -= OnLeaveRoom;
             }
         }
 
         public void Hide()
         {
-            GetComponent<Canvas>().enabled = false;
+            gameObject.SetActive(false);
         }
 
         public void Show()
         {
-            GetComponent<Canvas>().enabled = true;
-            // Debug.Log("OnCreateRoom");
+            gameObject.SetActive(true);
         }
 
         private void OnClickStartGameButton()
@@ -69,24 +75,39 @@ namespace Game.UI.MainMenu
             manager.StartGame();
         }
 
+
         private void OnClickLeaveRoomButton()
         {
             manager.LeaveRoom();
         }
 
-        private void OnCreateRoom()
+        private void OnClickReadyButton()
+        {
+            isReady = !isReady;
+            manager.SetPlayerReady(isReady);
+            readyButton.GetComponentInChildren<TMP_Text>().text = isReady ? "Cancel" : "Ready";
+            readyButton.GetComponent<Image>().color = isReady ? Color.red : Color.green;
+        }
+
+        private void OnCreateRoom(string playerId)
         {
             Show();
+            AddPlayerItem(playerId, true, true, 1);
         }
+
+        private void OnLeaveRoom()
+        {
+            Hide();
+        }
+
 
         private void OnPlayerJoined(string playerId, bool isSelf, bool isHost, int minPlayerCount)
         {
-            playerCount++;
-            UpdatePlayerCountText(playerCount);
-            playerListAdapter.AddPlayer(playerId);
-            playerListAdapter.SetPlayerName(playerId, playerId);
-            playerListAdapter.SetPlayerReady(playerId, false);
-            UpdateStartGameButton(isHost, minPlayerCount);
+            if (!isHost)
+            {
+                Show();
+            }
+            AddPlayerItem(playerId, isSelf, isHost, minPlayerCount);
         }
 
         private void OnPlayerLeft(string playerId, bool isHost, int minPlayerCount)
@@ -99,6 +120,7 @@ namespace Game.UI.MainMenu
 
         private void OnPlayerReady(string playerId, bool isReady, bool isHost)
         {
+            Debug.Log($"Player {playerId} is ready: {isReady}");
             playerListAdapter.SetPlayerReady(playerId, isReady);
         }
 
@@ -110,6 +132,16 @@ namespace Game.UI.MainMenu
         private void UpdateStartGameButton(bool isHost, int minPlayerCount)
         {
             startGameButton.interactable = isHost && playerCount >= minPlayerCount;
+        }
+
+        private void AddPlayerItem(string playerId, bool isSelf, bool isHost, int minPlayerCount)
+        {
+            playerCount++;
+            UpdatePlayerCountText(playerCount);
+            playerListAdapter.AddPlayer(playerId);
+            playerListAdapter.SetPlayerName(playerId, playerId);
+            playerListAdapter.SetPlayerReady(playerId, false);
+            UpdateStartGameButton(isHost, minPlayerCount);
         }
     }
 }

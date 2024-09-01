@@ -2,6 +2,7 @@ using System.ComponentModel;
 using GimJem.Core;
 using GimJem.Network;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
 namespace GimJem.UI.MainMenu
@@ -12,6 +13,8 @@ namespace GimJem.UI.MainMenu
         [SerializeField] private Button createRoomButton;
         [SerializeField] private Button joinRoomButton;
         [SerializeField] private Button connectButton;
+        [SerializeField] private Button playOfflineButton;
+        [SerializeField] private Button exitButton;
 
 
         public void Init(MainMenuManager manager)
@@ -19,7 +22,6 @@ namespace GimJem.UI.MainMenu
 
             this.manager = manager;
             manager.OnConnectionStateUpdated += OnConnectionStateUpdated;
-
         }
 
         private void Awake()
@@ -41,6 +43,8 @@ namespace GimJem.UI.MainMenu
             createRoomButton.onClick.AddListener(OnClickCreateRoomButton);
             joinRoomButton.onClick.AddListener(OnClickJoinRoomButton);
             connectButton.onClick.AddListener(OnClickConnectButton);
+            playOfflineButton.onClick.AddListener(OnClickPlayOfflineButton);
+            exitButton.onClick.AddListener(OnClickExitButton);
         }
 
         private void OnDisable()
@@ -48,6 +52,8 @@ namespace GimJem.UI.MainMenu
             createRoomButton.onClick.RemoveListener(OnClickCreateRoomButton);
             joinRoomButton.onClick.RemoveListener(OnClickJoinRoomButton);
             connectButton.onClick.RemoveListener(OnClickConnectButton);
+            playOfflineButton.onClick.RemoveListener(OnClickPlayOfflineButton);
+            exitButton.onClick.RemoveListener(OnClickExitButton);
         }
 
         private void OnConnectionStateUpdated(ConnectionStatus status)
@@ -69,14 +75,13 @@ namespace GimJem.UI.MainMenu
         }
 
 
-        private async void OnClickCreateRoomButton()
+        private void OnClickCreateRoomButton()
         {
-            await manager.CreateRoomAsync();
+            manager.CreateRoomAsync();
         }
 
         private void OnClickJoinRoomButton()
         {
-            Debug.Log("Join Room");
             manager.OpenJoinRoomDialog();
         }
 
@@ -85,14 +90,24 @@ namespace GimJem.UI.MainMenu
             Debug.Log("Connect");
         }
 
+        private void OnClickPlayOfflineButton()
+        {
+            SceneManager.LoadScene("Carnival");
+        }
+
+        private void OnClickExitButton()
+        {
+            Application.Quit();
+        }
+
         public void Hide()
         {
-            GetComponent<Canvas>().enabled = false;
+            gameObject.SetActive(false);
         }
 
         public void Show()
         {
-            GetComponent<Canvas>().enabled = true;
+            gameObject.SetActive(true);
         }
 
         private void SetInteractableCreateRoomButton(bool enabled)

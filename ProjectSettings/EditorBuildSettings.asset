@@ -6,6 +6,15 @@ EditorBuildSettings:
   serializedVersion: 2
   m_Scenes:
   - enabled: 1
-    path: Assets/0_Scenes/Main_Menu.unity
-    guid: 2a9572b78ba620c4da30f29a43ff8699
+    path: Assets/0_Scenes/Main_Menu_Local.unity
+    guid: aa48912c916a3ae4fa0db551fd2ee2d5
+  - enabled: 1
+    path: Assets/0_Scenes/Carnival.unity
+    guid: 537b4b0ea12d47f479a205ac54a838c9
+  - enabled: 1
+    path: Assets/0_Scenes/Bakiak.unity
+    guid: d7fa31517d88358458df86aee649a356
+  - enabled: 1
+    path: Assets/0_Scenes/TarikTambang.unity
+    guid: 024f503bebca8ef4aaffb84a6a15a203
   m_configObjects: {}

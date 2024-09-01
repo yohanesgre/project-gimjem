@@ -9,7 +9,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 5940712603164734293}
-  - component: {fileID: 1413086142767829395}
+  - component: {fileID: 562087664843875367}
   m_Layer: 0
   m_Name: Nakama_Network_Manager
   m_TagString: Untagged
@@ -32,7 +32,7 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &1413086142767829395
+--- !u!114 &562087664843875367
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -44,7 +44,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 68435ceef071cfc4d8f5bf88658c3cfb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  totalPlayersJoinedRoom: 0
+  playersLoadedCarnivalCount: 0
   SCHEME: http
   HOST: localhost
   PORT: 7350
   SERVER_KEY: defaultkey
+  _isHost: 0
+  _playerId: 
+  _roomKey: 

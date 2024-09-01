@@ -63,7 +63,7 @@ Canvas:
   m_AdditionalShaderChannelsFlag: 25
   m_UpdateRectTransformForStandalone: 0
   m_SortingLayerID: 0
-  m_SortingOrder: 0
+  m_SortingOrder: 1
   m_TargetDisplay: 0
 --- !u!114 &4410980576223201332
 MonoBehaviour:
@@ -120,6 +120,7 @@ MonoBehaviour:
   createRoomButton: {fileID: 8750636375627571170}
   joinRoomButton: {fileID: 2016960836802632015}
   connectButton: {fileID: 7646012185434601431}
+  playOfflineButton: {fileID: 8750636375627571170}
 --- !u!1 &4614656027439110621
 GameObject:
   m_ObjectHideFlags: 0
@@ -582,6 +583,36 @@ PrefabInstance:
     - target: {fileID: 4711064555735706206, guid: f873a84265413f945973f60409bd5e46,
         type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4920059970338990766, guid: f873a84265413f945973f60409bd5e46,
+        type: 3}
+      propertyPath: m_AnchorMax.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4920059970338990766, guid: f873a84265413f945973f60409bd5e46,
+        type: 3}
+      propertyPath: m_AnchorMin.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4920059970338990766, guid: f873a84265413f945973f60409bd5e46,
+        type: 3}
+      propertyPath: m_SizeDelta.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4920059970338990766, guid: f873a84265413f945973f60409bd5e46,
+        type: 3}
+      propertyPath: m_SizeDelta.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4920059970338990766, guid: f873a84265413f945973f60409bd5e46,
+        type: 3}
+      propertyPath: m_AnchoredPosition.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4920059970338990766, guid: f873a84265413f945973f60409bd5e46,
+        type: 3}
+      propertyPath: m_AnchoredPosition.y
       value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 5801590915996627284, guid: f873a84265413f945973f60409bd5e46,

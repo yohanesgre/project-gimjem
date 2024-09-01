@@ -26,18 +26,7 @@ namespace GimJem.Core
 
         private async void Start()
         {
-            InitializeManagers();
             await TryConnectToServerAsync();
-        }
-
-        private void InitializeManagers()
-        {
-            InitializeNakamaNetworkManager();
-        }
-
-        private void InitializeNakamaNetworkManager()
-        {
-            NakamaNetworkManager.Instance.InitConnectionClient();
         }
 
         private async Task TryConnectToServerAsync()
