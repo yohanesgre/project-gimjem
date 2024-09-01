@@ -13947,6 +13947,16 @@ PrefabInstance:
       objectReference: {fileID: 1708742732}
     - target: {fileID: 2623154044821008714, guid: 5d2d8e0092a50c145bad21d8c67282dc,
         type: 3}
+      propertyPath: maxZoom
+      value: 8
+      objectReference: {fileID: 0}
+    - target: {fileID: 2623154044821008714, guid: 5d2d8e0092a50c145bad21d8c67282dc,
+        type: 3}
+      propertyPath: minZoom
+      value: 5
+      objectReference: {fileID: 0}
+    - target: {fileID: 2623154044821008714, guid: 5d2d8e0092a50c145bad21d8c67282dc,
+        type: 3}
       propertyPath: isometricCameras.Array.data[0]
       value: 
       objectReference: {fileID: 1336042904}
@@ -14669,7 +14679,7 @@ Transform:
   m_GameObject: {fileID: 1708742731}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalPosition: {x: 0, y: 1, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -14697,7 +14707,7 @@ MonoBehaviour:
   finishLines:
   - {fileID: 924810840}
   - {fileID: 280085017}
-  firstToWin: 1
+  firstToWin: 2
   playerWonIndex: -1
 --- !u!1001 &1715033356
 PrefabInstance:

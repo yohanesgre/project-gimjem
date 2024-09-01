@@ -103,4 +103,10 @@ public class BakiakCharRenderer : MonoBehaviour
     {
         GetComponent<Canvas>().worldCamera = newCamera;
     }
+
+    public void Reset()
+    {
+        GenerateNewCharacter();
+        isInputEnabled = true;
+    }
 }

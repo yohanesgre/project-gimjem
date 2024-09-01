@@ -112,5 +112,6 @@ public class BakiakGameplayManager : MonoBehaviour
     {
         yield return new WaitForSeconds(1);
         players.ForEach(player => player.ResetPlayer());
+        charRenderer.Reset();
     }
 }

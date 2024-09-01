@@ -14,6 +14,7 @@ namespace GimJem.UI.MainMenu
         [SerializeField] private Button joinRoomButton;
         [SerializeField] private Button connectButton;
         [SerializeField] private Button playOfflineButton;
+        [SerializeField] private Button exitButton;
 
 
         public void Init(MainMenuManager manager)
@@ -43,6 +44,7 @@ namespace GimJem.UI.MainMenu
             joinRoomButton.onClick.AddListener(OnClickJoinRoomButton);
             connectButton.onClick.AddListener(OnClickConnectButton);
             playOfflineButton.onClick.AddListener(OnClickPlayOfflineButton);
+            exitButton.onClick.AddListener(OnClickExitButton);
         }
 
         private void OnDisable()
@@ -51,6 +53,7 @@ namespace GimJem.UI.MainMenu
             joinRoomButton.onClick.RemoveListener(OnClickJoinRoomButton);
             connectButton.onClick.RemoveListener(OnClickConnectButton);
             playOfflineButton.onClick.RemoveListener(OnClickPlayOfflineButton);
+            exitButton.onClick.RemoveListener(OnClickExitButton);
         }
 
         private void OnConnectionStateUpdated(ConnectionStatus status)
@@ -90,6 +93,11 @@ namespace GimJem.UI.MainMenu
         private void OnClickPlayOfflineButton()
         {
             SceneManager.LoadScene("Carnival");
+        }
+
+        private void OnClickExitButton()
+        {
+            Application.Quit();
         }
 
         public void Hide()
